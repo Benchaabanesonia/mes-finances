@@ -1,14 +1,14 @@
-MES FINANCES — VERSION 3
+MES FINANCES — VERSION 4 : DÉPART À ZÉRO
 
-1. Dans l'application Android actuelle, faites Réglages > Sauvegarde (.json).
-2. Décompressez ce ZIP sur votre ordinateur.
-3. Sur GitHub, ouvrez votre dépôt mes-finances, puis Add file > Upload files.
-4. Glissez les 7 fichiers index.html, app.js, style.css, sw.js, manifest.webmanifest, icon-192.png, icon-512.png (pas le dossier).
-5. Validez avec Commit changes. Les fichiers portant les mêmes noms seront remplacés.
-6. Après publication, ouvrez l'adresse GitHub Pages en ligne et actualisez. Sur Android, fermez puis rouvrez l'application ; si nécessaire, relancez-la une fois en ligne.
+Cette version utilise un nouvel espace de stockage : aucune ancienne opération ni ancien solde ne sera importé.
 
-Les données restent dans le stockage local du navigateur, tant que l'origine GitHub Pages et les données du site ne changent pas.
+INSTALLATION SANS VS CODE
+1. Décompresser ce ZIP.
+2. Dans le dépôt GitHub mes-finances, choisir Add file > Upload files.
+3. Glisser les fichiers à la racine du dépôt, puis Commit changes.
+4. Attendre la publication GitHub Pages, ouvrir le site dans le navigateur du téléphone avec Internet et actualiser.
+5. Si l’ancienne interface reste visible, fermer complètement l’application puis ouvrir le site GitHub Pages dans le navigateur et actualiser. Ne pas supprimer les données du navigateur sans sauvegarde.
 
-ANCIENNES DONNÉES : les opérations existantes sont préservées. Les anciens revenus « Maman (cash) » sont considérés comme espèces, les autres revenus et dépenses anciens comme opérations sur compte. Les prélèvements sur l'épargne restent suivis séparément dans Analyse.
+La balance mensuelle suit seulement le compte bancaire. Les espèces sont suivies à part et reportées d’un mois à l’autre. Analyse contient le cumul des prélèvements d’épargne.
 
-Note : « Espèces disponibles » est calculé à partir des opérations enregistrées depuis le début du suivi. Pour représenter un montant d'espèces déjà possédé avant le suivi, ajouter une entrée d'espèces initiale.
+IMPORTANT : les données de l’ancienne version ne sont pas reprises. Les sauvegardes JSON de l’ancienne version ne sont pas restaurables depuis cette interface.
