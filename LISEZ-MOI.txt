@@ -1,14 +1,6 @@
-MES FINANCES — VERSION 4 : DÉPART À ZÉRO
+Mes finances V6 — Renommage de catégories et analyse des dépenses par mois/catégorie.
 
-Cette version utilise un nouvel espace de stockage : aucune ancienne opération ni ancien solde ne sera importé.
-
-INSTALLATION SANS VS CODE
-1. Décompresser ce ZIP.
-2. Dans le dépôt GitHub mes-finances, choisir Add file > Upload files.
-3. Glisser les fichiers à la racine du dépôt, puis Commit changes.
-4. Attendre la publication GitHub Pages, ouvrir le site dans le navigateur du téléphone avec Internet et actualiser.
-5. Si l’ancienne interface reste visible, fermer complètement l’application puis ouvrir le site GitHub Pages dans le navigateur et actualiser. Ne pas supprimer les données du navigateur sans sauvegarde.
-
-La balance mensuelle suit seulement le compte bancaire. Les espèces sont suivies à part et reportées d’un mois à l’autre. Analyse contient le cumul des prélèvements d’épargne.
-
-IMPORTANT : les données de l’ancienne version ne sont pas reprises. Les sauvegardes JSON de l’ancienne version ne sont pas restaurables depuis cette interface.
+Avant la mise à jour : sauvegarder les données JSON.
+Décompresser puis envoyer tous les fichiers à la racine du dépôt GitHub Pages, en remplaçant les fichiers existants.
+Les données de V4/V5 sont conservées (même clé de stockage).
+Après publication, ouvrir le site avec Internet puis relancer l’application pour rafraîchir le cache.
