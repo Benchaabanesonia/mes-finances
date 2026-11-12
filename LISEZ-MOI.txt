@@ -1,6 +1,7 @@
-Mes finances V6 — Renommage de catégories et analyse des dépenses par mois/catégorie.
+Mes finances V5.1 — uniquement renommage de catégorie.
 
-Avant la mise à jour : sauvegarder les données JSON.
-Décompresser puis envoyer tous les fichiers à la racine du dépôt GitHub Pages, en remplaçant les fichiers existants.
-Les données de V4/V5 sont conservées (même clé de stockage).
-Après publication, ouvrir le site avec Internet puis relancer l’application pour rafraîchir le cache.
+Dans Réglages > Catégories, bouton Renommer. Les opérations liées à cette catégorie sont renommées sans perte.
+
+Cette version conserve le stockage V4/V5. Faites une sauvegarde JSON avant mise à jour.
+Sur GitHub, remplacer les fichiers de la racine par ceux du ZIP (ne pas téléverser le ZIP lui-même).
+Attendre la publication GitHub Pages et ouvrir le site dans le navigateur pour actualiser l'application.
