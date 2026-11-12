@@ -1,7 +1,1 @@
-Mes finances V5.1 — uniquement renommage de catégorie.
-
-Dans Réglages > Catégories, bouton Renommer. Les opérations liées à cette catégorie sont renommées sans perte.
-
-Cette version conserve le stockage V4/V5. Faites une sauvegarde JSON avant mise à jour.
-Sur GitHub, remplacer les fichiers de la racine par ceux du ZIP (ne pas téléverser le ZIP lui-même).
-Attendre la publication GitHub Pages et ouvrir le site dans le navigateur pour actualiser l'application.
+V5.3 : correctif sélecteur de catégorie et diagramme circulaire. Données locales conservées (clé mes-finances-zero-v4). Faire une sauvegarde JSON avant publication. Remplacer tous les fichiers GitHub.
