@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);const today=()=>{let d=new Date();return
 function show(id){for(let s of document.querySelectorAll('main section'))s.hidden=s.id!==id;if(id==='home'||id==='history')render();if(id==='settings')renderCategories();if(id==='analysis'){renderAnalysis();initCategoryAnalysis()}}
 function sum(a){return Math.round(a.reduce((s,e)=>s+e.amount,0)*100)/100}
 function paymentOf(e){if(e.type==='cash_in'||(e.type==='income'&&e.category==='Maman (cash)'&&e.payment===undefined))return 'cash';return e.payment==='cash'?'cash':'bank'}
-function render(){const month=$('month').value||today().slice(0,7);let all=data.entries,items=all.filter(e=>e.date.slice(0,7)===month).sort((a,b)=>b.date.localeCompare(a.date));let inc=sum(items.filter(e=>e.type==='income'&&paymentOf(e)==='bank')),exp=sum(items.filter(e=>e.type==='expense'&&paymentOf(e)==='bank')),cashExp=sum(items.filter(e=>e.type==='expense'&&paymentOf(e)==='cash'));let cashAvailable=sum(all.filter(e=>(e.type==='cash_in'||e.type==='income')&&paymentOf(e)==='cash'&&e.date.slice(0,7)<=month))-sum(all.filter(e=>e.type==='expense'&&paymentOf(e)==='cash'&&e.date.slice(0,7)<=month));$('income').textContent=fmt(inc);$('expense').textContent=fmt(exp);$('cashExpense').textContent=fmt(cashExp);$('cashAvailable').textContent=fmt(cashAvailable);$('totalExpense').textContent=fmt(exp+cashExp);let bal=inc-exp;$('balance').textContent=(bal>0?'+':'')+fmt(bal);$('balance').className='big '+(bal<0?'balance-negative':bal>0?'balance-positive':'');list('recent',items.slice(0,5));list('historyList',items);renderAnalysis();initCategoryAnalysis()}
+function render(){const month=$('month').value||today().slice(0,7);let all=data.entries,items=all.filter(e=>e.date.slice(0,7)===month).sort((a,b)=>b.date.localeCompare(a.date));let inc=sum(items.filter(e=>e.type==='income'&&paymentOf(e)==='bank')),exp=sum(items.filter(e=>e.type==='expense'&&paymentOf(e)==='bank')),cashExp=sum(items.filter(e=>e.type==='expense'&&paymentOf(e)==='cash'));let cashAvailable=sum(all.filter(e=>(e.type==='cash_in'||e.type==='income')&&paymentOf(e)==='cash'&&e.date.slice(0,7)<=month))-sum(all.filter(e=>e.type==='expense'&&paymentOf(e)==='cash'&&e.date.slice(0,7)<=month));$('income').textContent=fmt(inc);$('expense').textContent=fmt(exp);$('cashExpense').textContent=fmt(cashExp);$('cashAvailable').textContent=fmt(cashAvailable);$('totalExpense').textContent=fmt(exp+cashExp);let bal=inc-exp;$('balance').textContent=(bal>0?'+':'')+fmt(bal);$('balance').className='big '+(bal<0?'balance-negative':bal>0?'balance-positive':'');list('recent',items.slice(0,5));list('historyList',items);renderAnalysis();if(!$('analysis').hidden)initCategoryAnalysis()}
 function renderAnalysis(){
   // Le besoin d'épargne est calculé mois par mois sur le compte bancaire uniquement.
   // Les espèces et les opérations de prélèvement d'épargne ne sont pas des revenus bancaires.
@@ -27,59 +27,78 @@ function renderAnalysis(){
 }
 
 
-// Analyse indépendante : les listes ne sont pas reconstruites lors du changement de filtre.
+// Filtres multiples : les choix sont conservés lorsque les données changent.
 const pieColors=['#209d94','#e8a56c','#7e8ed1','#ce7ca6','#8baf63','#c28d69','#55a9c5','#b8a061','#a08bb7','#e1847d'];
+const analysisState={months:null,categories:null};
+const pct=n=>new Intl.NumberFormat('fr-CH',{maximumFractionDigits:1}).format(n)+' %';
 function initCategoryAnalysis(){
-  const ms=$('analysisMonth'),cs=$('analysisCategory');if(!ms||!cs)return;
   const expenses=data.entries.filter(e=>e.type==='expense'&&typeof e.date==='string');
   const months=[...new Set(expenses.map(e=>e.date.slice(0,7)))].sort().reverse();
-  const fallback=$('month').value||today().slice(0,7);
-  const oldMonth=ms.value,oldCat=cs.value;
-  ms.replaceChildren();
-  for(const m of months.length?months:[fallback]){
-    const o=document.createElement('option');o.value=m;
-    const [year,mon]=m.split('-').map(Number);
-    o.textContent=new Intl.DateTimeFormat('fr-CH',{month:'long',year:'numeric'}).format(new Date(year,mon-1,1));ms.append(o);
-  }
-  ms.value=months.includes(oldMonth)?oldMonth:(months.includes(fallback)?fallback:(months[0]||fallback));
-  cs.replaceChildren();cs.add(new Option('Toutes les catégories',''));
   const categories=[...new Set([...(data.categories.expense||[]),...expenses.map(e=>e.category)])].sort((a,b)=>a.localeCompare(b,'fr'));
-  for(const c of categories)cs.add(new Option(c,c));
-  cs.value=categories.includes(oldCat)?oldCat:'';
+  // Par défaut : mois affiché sur le bilan et toutes les catégories.
+  if(analysisState.months===null){const current=$('month').value||today().slice(0,7);analysisState.months=new Set(months.includes(current)?[current]:(months[0]?[months[0]]:[]))}
+  else analysisState.months=new Set([...analysisState.months].filter(m=>months.includes(m)));
+  if(analysisState.categories===null)analysisState.categories=new Set(categories);
+  else {
+    const previous=analysisState.availableCategories||[];
+    const wasAll=previous.length>0&&previous.every(c=>analysisState.categories.has(c));
+    analysisState.categories=new Set([...analysisState.categories].filter(c=>categories.includes(c)));
+    if(wasAll)for(const c of categories)analysisState.categories.add(c);
+  }
+  analysisState.availableMonths=months;analysisState.availableCategories=categories;
+  fillAnalysisOptions('months',months);fillAnalysisOptions('categories',categories);
+  renderCategoryAnalysis();
+}
+function fillAnalysisOptions(kind,values){
+  const holder=$(kind==='months'?'analysisMonthsChoices':'analysisCategoriesChoices');holder.replaceChildren();
+  for(const value of values){
+    const label=document.createElement('label');label.className='filter-option';
+    const input=document.createElement('input');input.type='checkbox';input.value=value;input.checked=analysisState[kind].has(value);
+    input.addEventListener('change',()=>{if(input.checked)analysisState[kind].add(value);else analysisState[kind].delete(value);renderCategoryAnalysis()});
+    const span=document.createElement('span');
+    if(kind==='months'){const [y,m]=value.split('-').map(Number);span.textContent=new Intl.DateTimeFormat('fr-CH',{month:'long',year:'numeric'}).format(new Date(y,m-1,1))}
+    else span.textContent=value;
+    label.append(input,span);holder.append(label);
+  }
+  if(!values.length){const p=document.createElement('p');p.className='note';p.textContent='Aucune donnée disponible';holder.append(p)}
+}
+function setAnalysisSelection(kind,all){
+  analysisState[kind]=new Set(all?(analysisState[kind==='months'?'availableMonths':'availableCategories']||[]):[]);
+  fillAnalysisOptions(kind,analysisState[kind==='months'?'availableMonths':'availableCategories']||[]);
   renderCategoryAnalysis();
 }
 function renderCategoryAnalysis(){
-  const ms=$('analysisMonth'),cs=$('analysisCategory');if(!ms||!cs)return;
-  const month=ms.value,category=cs.value;
-  const monthly=data.entries.filter(e=>e.type==='expense'&&e.date.slice(0,7)===month);
-  const selected=monthly.filter(e=>!category||e.category===category);
-  $('categoryAnalysisTotal').textContent=fmt(sum(selected));
+  if(!$('categoryAnalysisTotal'))return;
+  const months=analysisState.months||new Set(),categories=analysisState.categories||new Set();
+  const period=data.entries.filter(e=>e.type==='expense'&&months.has(e.date.slice(0,7)));
+  const selected=period.filter(e=>categories.has(e.category));
+  const periodTotal=sum(period),selectedTotal=sum(selected);
+  $('categoryAnalysisTotal').textContent=fmt(selectedTotal);
+  $('categoryAnalysisPercent').textContent=periodTotal>0?pct(selectedTotal/periodTotal*100)+' des dépenses':'0 % des dépenses';
+  $('categoryAnalysisPeriod').textContent=months.size+' mois sélectionné'+(months.size>1?'s':'');
+  const allMonths=analysisState.availableMonths||[],allCats=analysisState.availableCategories||[];
+  $('analysisMonthsSummary').textContent=months.size===allMonths.length&&allMonths.length?'Tous les mois':months.size===1?([...months][0]):months.size+' mois sélectionnés';
+  $('analysisCategoriesSummary').textContent=categories.size===allCats.length&&allCats.length?'Toutes les catégories':categories.size===1?([...categories][0]):categories.size+' catégories sélectionnées';
   const grouped=new Map();for(const e of selected)grouped.set(e.category,(grouped.get(e.category)||0)+e.amount);
   const sorted=[...grouped].sort((a,b)=>b[1]-a[1]);
   const breakdown=$('categoryAnalysisBreakdown');breakdown.replaceChildren();
   const pie=$('categoryPie'),empty=$('categoryPieEmpty');
-  const total=sum(selected);pie.replaceChildren();
-  if(total>0){
+  if(selectedTotal>0){
     let position=0;const slices=[];
     for(let i=0;i<sorted.length;i++){
-      const [name,amount]=sorted[i];const next=position+amount/total*100;
+      const [name,amount]=sorted[i],next=i===sorted.length-1?100:position+amount/selectedTotal*100;
       slices.push(`${pieColors[i%pieColors.length]} ${position.toFixed(4)}% ${next.toFixed(4)}%`);position=next;
       const li=document.createElement('li');li.className='pie-legend-item';
       const label=document.createElement('span');label.className='pie-label';
       const dot=document.createElement('i');dot.className='pie-dot';dot.style.backgroundColor=pieColors[i%pieColors.length];
       const nameNode=document.createElement('span');nameNode.textContent=name;label.append(dot,nameNode);
-      const val=document.createElement('strong');val.textContent=fmt(amount);li.append(label,val);breakdown.append(li);
+      const val=document.createElement('strong');val.className='pie-value';val.textContent=fmt(amount);
+      const share=document.createElement('small');share.className='pie-percent';share.textContent=pct(periodTotal>0?amount/periodTotal*100:0);val.append(share);
+      li.append(label,val);breakdown.append(li);
     }
     pie.style.background=`conic-gradient(${slices.join(',')})`;
     pie.hidden=false;empty.hidden=true;
   }else{pie.hidden=true;empty.hidden=false;empty.textContent='Aucune dépense pour cette sélection'}
-  const detail=$('categoryAnalysisEntries');detail.replaceChildren();
-  for(const e of [...selected].sort((a,b)=>b.date.localeCompare(a.date))){
-    const li=document.createElement('li');li.className='item';const info=document.createElement('span');const name=document.createElement('strong');name.textContent=e.category;
-    const sub=document.createElement('small');sub.textContent=e.date+' · '+(paymentOf(e)==='cash'?'Espèces':'Compte')+(e.note?' · '+e.note:'');
-    info.append(name,sub);const amount=document.createElement('strong');amount.textContent=fmt(e.amount);li.append(info,amount);detail.append(li);
-  }
-  if(!selected.length){const li=document.createElement('li');li.className='note';li.textContent='Aucune opération';detail.append(li)}
 }
 
 function list(id,items){let ul=$(id);ul.replaceChildren();if(!items.length){let li=document.createElement('li');li.className='note';li.textContent='Aucune opération';ul.append(li)}for(let e of items){let li=document.createElement('li');li.className='item';let info=document.createElement('div'),title=document.createElement('strong'),small=document.createElement('small');title.textContent=e.category;small.textContent=e.date+' · '+(paymentOf(e)==='cash'?'Espèces':e.type==='savings'?'Épargne':'Compte')+(e.note?' · '+e.note:'');info.append(title,small);let right=document.createElement('div');let value=document.createElement('b');value.textContent=(e.type==='expense'?'−':'+')+fmt(e.amount);let actions=document.createElement('div');actions.className='actions';let edit=document.createElement('button');edit.textContent='Modifier';edit.onclick=()=>editEntry(e.id);let del=document.createElement('button');del.textContent='×';del.className='danger';del.title='Supprimer';del.onclick=()=>{if(confirm('Supprimer cette opération ?')){data.entries=data.entries.filter(x=>x.id!==e.id);save();render()}};actions.append(edit,del);right.append(value,actions);li.append(info,right);ul.append(li)}}

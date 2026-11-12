@@ -1,1 +1,6 @@
-V5.3 : correctif sélecteur de catégorie et diagramme circulaire. Données locales conservées (clé mes-finances-zero-v4). Faire une sauvegarde JSON avant publication. Remplacer tous les fichiers GitHub.
+Mes finances v5.4 — Analyse multi-mois et multi-catégories.
+Conserve les données existantes (clé mes-finances-zero-v4).
+Sauvegarder les données JSON avant publication.
+Remplacer les fichiers à la racine du dépôt GitHub Pages.
+Dans Analyse : cocher plusieurs mois et catégories, ou utiliser Tous/Toutes.
+Les pourcentages sont calculés sur toutes les dépenses des mois choisis.
